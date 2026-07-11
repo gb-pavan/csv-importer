@@ -19,13 +19,15 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.2.0",
-    "openai": "^6.46.0"
+    "openai": "^6.46.0",
+    "papaparse": "^5.5.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.1",
+    "@types/papaparse": "^5.5.2",
     "tsx": "^4.23.0",
     "typescript": "^5.8.3"
   }
