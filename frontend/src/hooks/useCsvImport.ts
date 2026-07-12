@@ -40,7 +40,7 @@ export const useCsvImport = () => {
 
     try {
       // Assuming your backend is running on port 3001
-      const response = await fetch('http://localhost:3001/api/upload', {
+      const response = await fetch('https://csv-importer-84qa.onrender.com/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -48,8 +48,6 @@ export const useCsvImport = () => {
       if (!response.ok) throw new Error('API processing failed.');
 
       const data = await response.json();
-
-      console.log('API response status:', data);
       setResults(data);
       setStatus('success');
     } catch (err: any) {
