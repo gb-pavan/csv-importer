@@ -2,13 +2,19 @@ import { useState, useCallback } from 'react';
 import Papa from 'papaparse';
 
 type ImportStatus = 'idle' | 'previewing' | 'uploading' | 'success' | 'error';
+type CsvRow = Record<string, string>;
+type ImportResult = {
+  totalImported: number;
+  totalSkipped: number;
+  successfullyParsed: Record<string, unknown>[];
+};
 
 export const useCsvImport = () => {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<ImportStatus>('idle');
   const [headers, setHeaders] = useState<string[]>([]);
-  const [previewData, setPreviewData] = useState<any[]>([]);
-  const [results, setResults] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<CsvRow[]>([]);
+  const [results, setResults] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleFileSelection = useCallback((selectedFile: File) => {
@@ -17,12 +23,12 @@ export const useCsvImport = () => {
     setError(null);
 
     // Parse just for the frontend preview
-    Papa.parse(selectedFile, {
+    Papa.parse<CsvRow>(selectedFile, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
         setHeaders(results.meta.fields || []);
-        setPreviewData(results.data as any[]);
+        setPreviewData(results.data);
       },
       error: (err) => {
         setError(`Failed to parse file: ${err.message}`);
@@ -39,19 +45,19 @@ export const useCsvImport = () => {
     formData.append('csv_file', file); // Field name must match your backend Multer setup
 
     try {
-      // Assuming your backend is running on port 3001
-      const response = await fetch('https://csv-importer-84qa.onrender.com/api/upload', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/upload';
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) throw new Error('API processing failed.');
 
-      const data = await response.json();
+      const data = await response.json() as ImportResult;
       setResults(data);
       setStatus('success');
-    } catch (err: any) {
-      setError(err.message || 'An unknown error occurred during AI extraction.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred during AI extraction.');
       setStatus('error');
     }
   }, [file]);

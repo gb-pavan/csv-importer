@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { Card } from "../ui/Card";
 
 interface PreviewTableProps {
@@ -7,47 +8,66 @@ interface PreviewTableProps {
   data: Record<string, string>[];
 }
 
+const ROW_HEIGHT = 45;
+const OVERSCAN = 8;
+
 export const PreviewTable = ({ headers, data }: PreviewTableProps) => {
-  if (!data || data.length === 0) return null;
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const onScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(event.currentTarget.scrollTop);
+  }, []);
+
+  if (data.length === 0) return null;
+
+  const visibleRowCount = Math.ceil(500 / ROW_HEIGHT);
+  const firstVisibleRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
+  const lastVisibleRow = Math.min(data.length, firstVisibleRow + visibleRowCount + OVERSCAN * 2);
+  const visibleRows = data.slice(firstVisibleRow, lastVisibleRow);
+  const topSpacerHeight = firstVisibleRow * ROW_HEIGHT;
+  const bottomSpacerHeight = (data.length - lastVisibleRow) * ROW_HEIGHT;
 
   return (
     <Card className="flex flex-col h-full max-h-[500px] p-0 overflow-hidden border-white/20">
       <div className="p-4 border-b border-white/10 bg-white/5">
         <h3 className="text-lg font-semibold glow-text">CSV Data Preview</h3>
-        <p className="text-xs text-slate-400">Review your columns before AI extraction.</p>
+        <p className="text-xs text-slate-400">
+          Viewing all {data.length.toLocaleString()} rows with virtualized rendering.
+        </p>
       </div>
-      
-      <div className="overflow-auto flex-1 custom-scrollbar">
+
+      <div className="overflow-auto flex-1 custom-scrollbar" onScroll={onScroll}>
         <table className="w-full text-sm text-left">
           <thead className="text-xs uppercase bg-white/10 backdrop-blur-md text-slate-300 sticky top-0 z-10 shadow-sm">
             <tr>
               <th className="px-6 py-4 font-medium tracking-wider">#</th>
-              {headers.map((header, index) => (
-                <th key={index} className="px-6 py-4 font-medium tracking-wider whitespace-nowrap">
+              {headers.map((header) => (
+                <th key={header} className="px-6 py-4 font-medium tracking-wider whitespace-nowrap">
                   {header}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {data.slice(0, 50).map((row, rowIndex) => ( // Preview max 50 rows for performance
-              <tr key={rowIndex} className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-3 text-slate-500">{rowIndex + 1}</td>
-                {headers.map((header, colIndex) => (
-                  <td key={colIndex} className="px-6 py-3 whitespace-nowrap text-slate-300">
-                    {row[header] || '-'}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {topSpacerHeight > 0 && <tr aria-hidden="true"><td colSpan={headers.length + 1} style={{ height: topSpacerHeight }} /></tr>}
+            {visibleRows.map((row, offset) => {
+              const rowIndex = firstVisibleRow + offset;
+
+              return (
+                <tr key={rowIndex} className="h-[45px] hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-3 text-slate-500">{rowIndex + 1}</td>
+                  {headers.map((header) => (
+                    <td key={header} className="px-6 py-3 whitespace-nowrap text-slate-300">
+                      {row[header] || "-"}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+            {bottomSpacerHeight > 0 && <tr aria-hidden="true"><td colSpan={headers.length + 1} style={{ height: bottomSpacerHeight }} /></tr>}
           </tbody>
         </table>
       </div>
-      {data.length > 50 && (
-        <div className="p-3 text-center text-xs text-slate-400 bg-white/5 border-t border-white/10">
-          Showing first 50 rows. {data.length - 50} more rows hidden.
-        </div>
-      )}
     </Card>
   );
 };

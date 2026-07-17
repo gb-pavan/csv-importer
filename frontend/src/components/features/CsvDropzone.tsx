@@ -51,7 +51,7 @@ export const CsvDropzone = ({ onFileSelected }: CsvDropzoneProps) => {
         {isDragActive ? "Drop it right here" : "Upload your CSV"}
       </h3>
       <p className="text-slate-400 text-sm text-center max-w-sm mt-2">
-        Drag & drop your lead export here, or click to browse. Ensure it's a valid CSV format.
+        Drag & drop your lead export here, or click to browse. Ensure it&apos;s a valid CSV format.
       </p>
     </Card>
   );

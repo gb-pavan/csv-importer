@@ -75,7 +75,7 @@ import { CheckCircle2, XCircle } from "lucide-react";
 interface ResultsTableProps {
   totalImported: number;
   totalSkipped: number;
-  parsedLeads: Record<string, any>[];
+  parsedLeads: Record<string, unknown>[];
 }
 
 export const ResultsTable = ({
@@ -83,8 +83,6 @@ export const ResultsTable = ({
   totalSkipped,
   parsedLeads,
 }: ResultsTableProps) => {
-  console.log("Rendering ResultsTable with parsedLeads:", parsedLeads);
-
   // Extract all columns dynamically
   const columns =
     parsedLeads.length > 0

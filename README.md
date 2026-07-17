@@ -18,6 +18,8 @@ Instead of relying on rigid, hardcoded column mapping, this system leverages a *
 * **Batch Processing:** Safely chunks large CSVs into manageable batches before sending them to the LLM to prevent rate limiting and context-window overflow.
 * **Premium UI/UX:** Built with Next.js and Tailwind CSS, featuring a responsive, glassmorphism design system, drag-and-drop uploads, and interactive data preview tables.
 * **Provider-Agnostic AI:** The AI extraction layer uses the Strategy Pattern, allowing zero-friction swapping between Gemini, OpenAI, and Claude.
+* **Resilient batch processing:** Transient AI failures (rate limits, timeouts, and server errors) retry with exponential backoff and jitter before a batch is skipped.
+* **Virtualized preview:** Large CSV previews render only the visible rows while still allowing users to scroll every parsed row.
 
 ---
 
@@ -43,6 +45,14 @@ This project was built with strict adherence to **Domain-Driven Design (DDD)** a
 * npm or yarn
 * A Supabase Account
 * A Google Gemini API Key
+
+### Docker deployment
+
+1. Copy `backend/.env.example` to `backend/.env` and fill in the API and Supabase values.
+2. Optionally copy `.env.example` to `.env` to set the browser-facing upload API URL.
+3. Run `docker compose up --build`.
+
+The frontend is available at `http://localhost:3000`; the backend health check is at `http://localhost:3001/health`. For separate production domains, set `NEXT_PUBLIC_API_URL` to the public backend `/api/upload` URL before building the frontend image.
 
 ### 1. Database Setup (Supabase)
 Run the following SQL in your Supabase SQL Editor to create the required schema:

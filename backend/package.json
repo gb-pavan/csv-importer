@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/infrastructure/server.ts",
     "build": "tsc",
-    "start": "node dist/infrastructure/server.js"
+    "start": "node dist/infrastructure/server.js",
+    "verify:retry": "tsx scripts/verifyRetry.ts"
   },
   "keywords": [],
   "author": "",
