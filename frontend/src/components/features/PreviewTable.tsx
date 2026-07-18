@@ -38,7 +38,7 @@ export const PreviewTable = ({ headers, data }: PreviewTableProps) => {
 
       <div className="flex-1 overflow-auto custom-scrollbar" onScroll={onScroll}>
         <table className="min-w-max w-full text-sm text-left">
-          <thead className="text-xs uppercase bg-white/10 backdrop-blur-md text-slate-300 sticky top-0 z-10 shadow-sm">
+          <thead className="sticky top-0 z-10 bg-slate-950 text-xs uppercase text-slate-300 shadow-sm">
             <tr>
               <th className="px-4 py-3 font-medium tracking-wider sm:px-6 sm:py-4">#</th>
               {headers.map((header) => (

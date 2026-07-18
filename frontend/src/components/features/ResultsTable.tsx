@@ -80,6 +80,31 @@ interface ResultsTableProps {
   skippedRecords: Record<string, unknown>[];
 }
 
+const isCreatedAtColumn = (column: string) =>
+  column.trim().toLowerCase().replace(/[\s-]+/g, "_") === "created_at";
+
+const formatCreatedAt = (value: unknown) => {
+  const date = value instanceof Date ? value : new Date(String(value));
+
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = date.getHours();
+  const hour = String(hours % 12 || 12).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = hours >= 12 ? "PM" : "AM";
+
+  return `${day}-${month}-${year} ${hour}:${minutes} ${period}`;
+};
+
+const displayCellValue = (column: string, value: unknown) => {
+  if (value === null || value === undefined || value === "") return "N/A";
+
+  return isCreatedAtColumn(column) ? formatCreatedAt(value) : String(value);
+};
+
 export const ResultsTable = ({
   totalImported,
   totalSkipped,
@@ -146,7 +171,7 @@ export const ResultsTable = ({
           <p className="p-6 text-center text-slate-400">No valid CRM records were extracted.</p>
         )}
         <table className="min-w-max w-full text-sm text-left">
-          <thead className="text-xs uppercase bg-white/10 backdrop-blur-md text-slate-300 sticky top-0 z-10">
+          <thead className="sticky top-0 z-10 bg-slate-950 text-xs uppercase text-slate-300 shadow-sm">
             <tr>
               {columns.map((column) => (
                 <th
@@ -170,11 +195,7 @@ export const ResultsTable = ({
                     key={`${rowIndex}-${column}`}
                     className="whitespace-nowrap px-4 py-3 text-slate-300 sm:px-6"
                   >
-                    {lead[column] === null ||
-                    lead[column] === undefined ||
-                    lead[column] === ""
-                      ? "N/A"
-                      : String(lead[column])}
+                    {displayCellValue(column, lead[column])}
                   </td>
                 ))}
               </tr>
@@ -190,7 +211,7 @@ export const ResultsTable = ({
             <p className="text-sm text-rose-200/70">These source rows could not be imported.</p>
           </div>
           <table className="min-w-max w-full text-sm text-left">
-            <thead className="sticky top-[73px] z-10 bg-slate-950/90 text-xs uppercase text-slate-300">
+            <thead className="sticky top-[77px] z-10 bg-slate-950 text-xs uppercase text-slate-300 shadow-sm sm:top-[73px]">
               <tr>
                 <th className="whitespace-nowrap px-4 py-3 sm:px-6 sm:py-4">Source row</th>
                 <th className="whitespace-nowrap px-4 py-3 sm:px-6 sm:py-4">Reason</th>
@@ -206,9 +227,7 @@ export const ResultsTable = ({
                   <td className="px-4 py-3 text-slate-300 sm:px-6">{String(record.reason ?? "Not imported")}</td>
                   {skippedColumns.map((column) => (
                     <td key={`${index}-${column}`} className="whitespace-nowrap px-4 py-3 text-slate-300 sm:px-6">
-                      {record[column] === null || record[column] === undefined || record[column] === ""
-                        ? "N/A"
-                        : String(record[column])}
+                      {displayCellValue(column, record[column])}
                     </td>
                   ))}
                 </tr>
