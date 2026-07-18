@@ -3,15 +3,9 @@ import cors from 'cors';
 import multer from 'multer';
 import dotenv from 'dotenv';
 import { CsvParserService } from '../application/CsvParserService.js';
-// Remove this: import { OpenAiExtractor } from './ai/OpenAiExtractor.js';
-import { GeminiExtractor } from './ai/GeminiExtractor.js';
-import { OpenAiExtractor } from './ai/OpenAiExtractor.js';
+import { createAiExtractor } from './ai/AiProviderFactory.js';
 import { SupabaseLeadRepo } from './database/SupabaseLeadRepo.js';
 import { ImportLeadsUseCase } from '../application/ImportLeadsUseCase.js';
-// import { CsvParserService } from '../application/CsvParserService';
-// import { ImportLeadsUseCase } from '../application/ImportLeadsUseCase';
-// import { OpenAiExtractor } from './ai/OpenAiExtractor';
-// import { SupabaseLeadRepo } from './database/SupabaseLeadRepo';
 
 dotenv.config();
 
@@ -31,7 +25,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Dependency Injection Initialization
 const parserService = new CsvParserService();
-const aiExtractor = new GeminiExtractor();
+const aiExtractor = createAiExtractor();
 const leadRepo = new SupabaseLeadRepo();
 const importUseCase = new ImportLeadsUseCase(aiExtractor, leadRepo);
 
@@ -52,9 +46,15 @@ app.post('/api/upload', upload.single('csv_file'), async (req, res): Promise<voi
     const result = await importUseCase.execute(rawRecords);
     
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload route error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    const candidate = error as { status?: number; message?: string };
+    const status = candidate?.status === 429 ? 429 : 500;
+    const errorMessage = status === 429
+      ? 'AI provider quota is exhausted. Wait for the quota to reset or enable billing, then try again.'
+      : candidate?.message || 'Internal server error';
+
+    res.status(status).json({ error: errorMessage });
   }
 });
 

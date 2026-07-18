@@ -29,17 +29,18 @@ export class SupabaseLeadRepo implements ILeadRepo {
       description: lead.description
     }));
 
-    const { error, count } = await supabase
+    const { data, error } = await supabase
       .from('leads')
-      .insert(recordsToInsert)
-      .select('*'); // Returns the count of inserted rows
-    //   .select('*', { count: 'exact', head: true }); // Returns the count of inserted rows
+      // The email column has a unique constraint.  Re-importing a CSV should be
+      // safe, so retain the existing row and insert only genuinely new leads.
+      .upsert(recordsToInsert, { onConflict: 'email', ignoreDuplicates: true })
+      .select('email');
 
     if (error) {
       console.error('Supabase insertion error:', error.message);
       throw new Error(`Database error: ${error.message}`);
     }
 
-    return count || recordsToInsert.length;
+    return data?.length ?? 0;
   }
 }

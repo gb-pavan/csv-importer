@@ -47,6 +47,12 @@ export class ImportLeadsUseCase {
 
         totalSkipped += skippedInBatch;
       } catch (error) {
+        if (this.isRateLimited(error)) {
+          // Do not make the same quota-exhausted request for every remaining
+          // batch, and allow the HTTP layer to report the real cause to users.
+          throw error;
+        }
+
         console.error(`AI extraction failed after retries for batch ${i / this.BATCH_SIZE + 1}:`, error);
         // If a whole batch fails (e.g., rate limit hit and retries exhausted), count them all as skipped
         totalSkipped += batch.length;
@@ -58,5 +64,11 @@ export class ImportLeadsUseCase {
       totalSkipped,
       successfullyParsed
     };
+  }
+
+  private isRateLimited(error: unknown): boolean {
+    const candidate = error as { status?: number; message?: string };
+
+    return candidate?.status === 429;
   }
 }

@@ -17,6 +17,7 @@ import dotenv from 'dotenv';
 // import type { CrmStatus, DataSource, Lead } from '../../domain/entities/Lead.js';
 import type { IAiExtractor, RawCsvRecord } from '../../domain/interfaces/IAiExtractor.js';
 import { Lead, type CrmStatus, type DataSource } from '../../domain/entities/Lead.js';
+import { leadExtractionSystemPrompt } from './LeadExtractionPrompt.js';
 
 dotenv.config();
 
@@ -28,26 +29,12 @@ export class OpenAiExtractor implements IAiExtractor {
     }
 
     public async extractRecords(batch: RawCsvRecord[]): Promise<Lead[]> {
-        const systemPrompt = `
-      You are an intelligent data extraction assistant for a CRM system.
-      Convert the following array of raw CSV JSON records into structured CRM Lead records.
-      
-      CRITICAL RULES:
-      1. crm_status MUST be exactly one of: GOOD_LEAD_FOLLOW_UP, DID_NOT_CONNECT, BAD_LEAD, SALE_DONE.
-      2. data_source MUST be exactly one of: leads_on_demand, meridian_tower, eden_park, varah_swamy, sarjapur_plots. Leave null if unsure.
-      3. If multiple emails exist, put the first in 'email' and append the rest to 'crm_note'.
-      4. If multiple phone numbers exist, put the first in 'mobile_without_country_code' and append the rest to 'crm_note'.
-      5. Any extra useful info should go into 'crm_note'.
-      
-      Return a JSON object with a single root key "leads" containing an array of the structured records.
-    `;
-
         const response = await this.openai.chat.completions.create({
             model: 'gpt-4o-mini', // Fast, cheap, excellent at JSON
             response_format: { type: 'json_object' },
             temperature: 0.1, // Low temperature for deterministic mapping
             messages: [
-                { role: 'system', content: systemPrompt },
+                { role: 'system', content: leadExtractionSystemPrompt },
                 { role: 'user', content: JSON.stringify(batch) }
             ],
         });

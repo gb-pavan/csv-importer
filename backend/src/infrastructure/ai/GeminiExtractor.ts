@@ -11,91 +11,79 @@ import {
     type CrmStatus,
     type DataSource,
 } from "../../domain/entities/Lead.js";
+import { createLeadExtractionPrompt } from "./LeadExtractionPrompt.js";
 
 dotenv.config();
+
+const leadResponseSchema = {
+    type: "object",
+    additionalProperties: false,
+    required: ["leads"],
+    properties: {
+        leads: {
+            type: "array",
+            items: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                    created_at: { type: ["string", "null"] },
+                    name: { type: ["string", "null"] },
+                    email: { type: ["string", "null"] },
+                    country_code: { type: ["string", "null"] },
+                    mobile_without_country_code: { type: ["string", "null"] },
+                    company: { type: ["string", "null"] },
+                    city: { type: ["string", "null"] },
+                    state: { type: ["string", "null"] },
+                    country: { type: ["string", "null"] },
+                    lead_owner: { type: ["string", "null"] },
+                    crm_status: {
+                        type: ["string", "null"],
+                        enum: ["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", "SALE_DONE", null],
+                    },
+                    crm_note: { type: ["string", "null"] },
+                    data_source: {
+                        type: ["string", "null"],
+                        enum: ["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots", null],
+                    },
+                    possession_time: { type: ["string", "null"] },
+                    description: { type: ["string", "null"] },
+                },
+            },
+        },
+    },
+};
+
+type GeminiResponse = { leads: Record<string, unknown>[] };
+
+const nullableString = (value: unknown): string | null =>
+    typeof value === "string" ? value : null;
+
+class InvalidGeminiResponseError extends Error {
+    public readonly retryable = true;
+}
 
 export class GeminiExtractor implements IAiExtractor {
     private ai: GoogleGenAI;
 
     constructor() {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY_3;
 
         if (!apiKey) {
-            throw new Error("GEMINI_API_KEY is missing.");
+            throw new Error("GEMINI_API_KEY_3 is missing.");
         }
 
         this.ai = new GoogleGenAI({ apiKey });
     }
 
     public async extractRecords(batch: RawCsvRecord[]): Promise<Lead[]> {
-        const prompt = `
-You are an intelligent data extraction assistant for a CRM system.
-
-Convert the following array of raw CSV JSON records into structured CRM Lead records.
-
-Rules:
-
-1. crm_status MUST be one of:
-GOOD_LEAD_FOLLOW_UP
-DID_NOT_CONNECT
-BAD_LEAD
-SALE_DONE
-
-2. data_source MUST be one of:
-leads_on_demand
-meridian_tower
-eden_park
-varah_swamy
-sarjapur_plots
-
-If unsure, return null.
-
-3. If multiple emails exist:
-- first -> email
-- remaining -> crm_note
-
-4. If multiple phone numbers exist:
-- first -> mobile_without_country_code
-- remaining -> crm_note
-
-5. Put any extra useful information into crm_note.
-
-Return ONLY valid JSON.
-
-Format:
-
-{
-  "leads": [
-    {
-      "created_at": null,
-      "name": null,
-      "email": null,
-      "country_code": null,
-      "mobile_without_country_code": null,
-      "company": null,
-      "city": null,
-      "state": null,
-      "country": null,
-      "lead_owner": null,
-      "crm_status": null,
-      "crm_note": null,
-      "data_source": null,
-      "possession_time": null,
-      "description": null
-    }
-  ]
-}
-
-CSV DATA:
-
-${JSON.stringify(batch)}
-`;
+        const prompt = createLeadExtractionPrompt(batch);
 
         const response = await this.ai.models.generateContent({
             model: "gemini-3.5-flash",
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
+                responseJsonSchema: leadResponseSchema,
                 temperature: 0.1,
             },
         });
@@ -106,29 +94,42 @@ ${JSON.stringify(batch)}
             throw new Error("Empty response from Gemini.");
         }
 
-        const parsed = JSON.parse(content);
+        let parsed: GeminiResponse;
+        try {
+            parsed = JSON.parse(content) as GeminiResponse;
+        } catch {
+            // A malformed model response is transient; let the extraction retry obtain a fresh response.
+            throw new InvalidGeminiResponseError("Gemini returned malformed JSON.");
+        }
 
-        const extractedData = parsed.leads ?? [];
+        if (!Array.isArray(parsed.leads)) {
+            throw new InvalidGeminiResponseError('Gemini response must contain a "leads" array.');
+        }
+
+        const extractedData = parsed.leads;
 
         return extractedData.map(
-            (data: any) =>
-                new Lead(
-                    data.created_at ? new Date(data.created_at) : null,
-                    data.name ?? null,
-                    data.email ?? null,
-                    data.country_code ?? null,
-                    data.mobile_without_country_code ?? null,
-                    data.company ?? null,
-                    data.city ?? null,
-                    data.state ?? null,
-                    data.country ?? null,
-                    data.lead_owner ?? null,
-                    data.crm_status as CrmStatus,
-                    data.crm_note ?? null,
-                    data.data_source as DataSource,
-                    data.possession_time ?? null,
-                    data.description ?? null
-                )
+            (data) => {
+                const createdAt = nullableString(data.created_at);
+
+                return new Lead(
+                    createdAt ? new Date(createdAt) : null,
+                    nullableString(data.name),
+                    nullableString(data.email),
+                    nullableString(data.country_code),
+                    nullableString(data.mobile_without_country_code),
+                    nullableString(data.company),
+                    nullableString(data.city),
+                    nullableString(data.state),
+                    nullableString(data.country),
+                    nullableString(data.lead_owner),
+                    nullableString(data.crm_status) as CrmStatus,
+                    nullableString(data.crm_note),
+                    nullableString(data.data_source) as DataSource,
+                    nullableString(data.possession_time),
+                    nullableString(data.description)
+                );
+            }
         );
     }
 }
