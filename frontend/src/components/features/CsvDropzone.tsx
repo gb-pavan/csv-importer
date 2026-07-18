@@ -8,23 +8,30 @@ import { cn } from "@/lib/utils";
 
 interface CsvDropzoneProps {
   onFileSelected: (file: File) => void;
+  onFileRejected: (message: string) => void;
 }
 
-export const CsvDropzone = ({ onFileSelected }: CsvDropzoneProps) => {
+export const CsvDropzone = ({ onFileSelected, onFileRejected }: CsvDropzoneProps) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       onFileSelected(acceptedFiles[0]);
     }
   }, [onFileSelected]);
 
+  const onDropRejected = useCallback(() => {
+    onFileRejected('Please choose one CSV file smaller than 10 MB.');
+  }, [onFileRejected]);
+
   // Bypass the broken strict interface check by passing inline and casting
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: {
       'text/csv': ['.csv'],
       'application/vnd.ms-excel': ['.csv']
     },
     maxFiles: 1,
+    maxSize: 10 * 1024 * 1024,
     multiple: false,
   } as unknown as DropzoneOptions);
 

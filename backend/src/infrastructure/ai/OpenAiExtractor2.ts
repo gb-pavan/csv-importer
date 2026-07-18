@@ -6,11 +6,8 @@ import type {
   RawCsvRecord,
 } from '../../domain/interfaces/IAiExtractor.js';
 
-import {
-  Lead,
-  type CrmStatus,
-  type DataSource,
-} from '../../domain/entities/Lead.js';
+import { Lead } from '../../domain/entities/Lead.js';
+import { normalizeLead } from '../../domain/services/LeadNormalizer.js';
 import { leadExtractionSystemPrompt } from './LeadExtractionPrompt.js';
 
 dotenv.config();
@@ -27,9 +24,9 @@ type NvidiaLeadResponse = {
     state?: string | null;
     country?: string | null;
     lead_owner?: string | null;
-    crm_status?: CrmStatus | null;
+    crm_status?: string | null;
     crm_note?: string | null;
-    data_source?: DataSource | null;
+    data_source?: string | null;
     possession_time?: string | null;
     description?: string | null;
   }>;
@@ -111,25 +108,6 @@ export class NvidiaExtractor implements IAiExtractor {
 
     const extractedData = parsed.leads;
 
-    return extractedData.map(
-      (data) =>
-        new Lead(
-          data.created_at ? new Date(data.created_at) : null,
-          data.name ?? null,
-          data.email ?? null,
-          data.country_code ?? null,
-          data.mobile_without_country_code ?? null,
-          data.company ?? null,
-          data.city ?? null,
-          data.state ?? null,
-          data.country ?? null,
-          data.lead_owner ?? null,
-          (data.crm_status ?? null) as CrmStatus,
-          data.crm_note ?? null,
-          (data.data_source ?? null) as DataSource,
-          data.possession_time ?? null,
-          data.description ?? null,
-        ),
-    );
+    return extractedData.map(normalizeLead);
   }
 }

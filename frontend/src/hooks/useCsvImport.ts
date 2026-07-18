@@ -27,14 +27,35 @@ export const useCsvImport = () => {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
+        if (!results.meta.fields?.some((field) => field.trim() !== '') || results.data.length === 0) {
+          setFile(null);
+          setStatus('idle');
+          setError('Choose a CSV with a header row and at least one data row.');
+          return;
+        }
+
+        const fatalError = results.errors.find((parseError) => parseError.type === 'Quotes');
+        if (fatalError) {
+          setFile(null);
+          setStatus('idle');
+          setError(`Invalid CSV: ${fatalError.message}`);
+          return;
+        }
+
         setHeaders(results.meta.fields || []);
         setPreviewData(results.data);
       },
       error: (err) => {
         setError(`Failed to parse file: ${err.message}`);
-        setStatus('error');
+        setStatus('idle');
       }
     });
+  }, []);
+
+  const handleFileRejection = useCallback((message: string) => {
+    setFile(null);
+    setStatus('idle');
+    setError(message);
   }, []);
 
   const confirmAndUpload = useCallback(async () => {
@@ -51,14 +72,17 @@ export const useCsvImport = () => {
         body: formData,
       });
 
-      if (!response.ok) throw new Error('API processing failed.');
+      if (!response.ok) {
+        const body = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(body?.error || `Upload failed (${response.status}).`);
+      }
 
       const data = await response.json() as ImportResult;
       setResults(data);
       setStatus('success');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred during AI extraction.');
-      setStatus('error');
+      setStatus('previewing');
     }
   }, [file]);
 
@@ -73,6 +97,6 @@ export const useCsvImport = () => {
 
   return {
     file, status, headers, previewData, results, error,
-    handleFileSelection, confirmAndUpload, reset
+    handleFileSelection, handleFileRejection, confirmAndUpload, reset
   };
 };

@@ -96,7 +96,14 @@ export const ResultsTable = ({
   return (
     <div className="space-y-6 w-full">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="flex items-center gap-4 bg-cyan-500/10 border-cyan-500/30">
+          <CheckCircle2 className="w-10 h-10 text-cyan-400" />
+          <div>
+            <p className="text-sm text-slate-300">Successfully Parsed</p>
+            <p className="text-3xl font-bold text-cyan-400">{parsedLeads.length}</p>
+          </div>
+        </Card>
         <Card className="flex items-center gap-4 bg-emerald-500/10 border-emerald-500/30">
           <CheckCircle2 className="w-10 h-10 text-emerald-400" />
           <div>
@@ -124,6 +131,9 @@ export const ResultsTable = ({
 
       {/* Dynamic Table */}
       <Card className="max-h-[500px] overflow-auto p-0 border-white/20 custom-scrollbar">
+        {parsedLeads.length === 0 && (
+          <p className="p-6 text-center text-slate-400">No valid CRM records were extracted.</p>
+        )}
         <table className="w-full text-sm text-left">
           <thead className="text-xs uppercase bg-white/10 backdrop-blur-md text-slate-300 sticky top-0 z-10">
             <tr>

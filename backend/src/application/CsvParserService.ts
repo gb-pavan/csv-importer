@@ -14,8 +14,24 @@ export class CsvParserService {
         skipEmptyLines: true,
         transformHeader: (header) => header.trim().toLowerCase(), // Normalize headers a bit
         complete: (results) => {
+          const fatalError = results.errors.find((error) => error.type === 'Quotes');
+          if (fatalError) {
+            reject(new Error(`Invalid CSV: ${fatalError.message}`));
+            return;
+          }
+
+          if (!results.meta.fields?.some((field) => field.trim() !== '')) {
+            reject(new Error('Invalid CSV: a header row is required.'));
+            return;
+          }
+
+          if (results.data.length === 0) {
+            reject(new Error('Invalid CSV: add at least one data row.'));
+            return;
+          }
+
           if (results.errors.length > 0) {
-            console.warn('Non-fatal parsing warnings:', results.errors);
+            console.warn('CSV parsing warnings:', results.errors);
           }
           resolve(results.data as RawCsvRecord[]);
         },

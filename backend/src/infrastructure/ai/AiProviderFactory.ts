@@ -14,7 +14,6 @@ export const createAiExtractor = (
     case 'openai':
       return new OpenAiExtractor();
     case 'nvidia':
-      console.log('Creating NvidiaExtractor with NVIDIA_API_KEY:', process.env.NVIDIA_API_KEY);
       return new NvidiaExtractor();
     default:
       throw new Error(

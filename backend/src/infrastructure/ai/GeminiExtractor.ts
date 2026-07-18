@@ -6,11 +6,8 @@ import type {
     RawCsvRecord,
 } from "../../domain/interfaces/IAiExtractor.js";
 
-import {
-    Lead,
-    type CrmStatus,
-    type DataSource,
-} from "../../domain/entities/Lead.js";
+import { Lead } from "../../domain/entities/Lead.js";
+import { normalizeLead } from "../../domain/services/LeadNormalizer.js";
 import { createLeadExtractionPrompt } from "./LeadExtractionPrompt.js";
 
 dotenv.config();
@@ -54,9 +51,6 @@ const leadResponseSchema = {
 };
 
 type GeminiResponse = { leads: Record<string, unknown>[] };
-
-const nullableString = (value: unknown): string | null =>
-    typeof value === "string" ? value : null;
 
 class InvalidGeminiResponseError extends Error {
     public readonly retryable = true;
@@ -108,28 +102,6 @@ export class GeminiExtractor implements IAiExtractor {
 
         const extractedData = parsed.leads;
 
-        return extractedData.map(
-            (data) => {
-                const createdAt = nullableString(data.created_at);
-
-                return new Lead(
-                    createdAt ? new Date(createdAt) : null,
-                    nullableString(data.name),
-                    nullableString(data.email),
-                    nullableString(data.country_code),
-                    nullableString(data.mobile_without_country_code),
-                    nullableString(data.company),
-                    nullableString(data.city),
-                    nullableString(data.state),
-                    nullableString(data.country),
-                    nullableString(data.lead_owner),
-                    nullableString(data.crm_status) as CrmStatus,
-                    nullableString(data.crm_note),
-                    nullableString(data.data_source) as DataSource,
-                    nullableString(data.possession_time),
-                    nullableString(data.description)
-                );
-            }
-        );
+        return extractedData.map(normalizeLead);
     }
 }

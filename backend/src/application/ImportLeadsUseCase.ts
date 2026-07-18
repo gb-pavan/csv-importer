@@ -35,7 +35,9 @@ export class ImportLeadsUseCase {
         );
 
         // 2. Validate using Domain logic (must have email or mobile) [cite: 128-133]
-        const validLeads = extractedLeads.filter(lead => lead.isValid());
+        // A provider must not be able to inflate the import result by returning
+        // more leads than the source batch contains.
+        const validLeads = extractedLeads.slice(0, batch.length).filter(lead => lead.isValid());
         const skippedInBatch = batch.length - validLeads.length;
 
         // 3. Save valid leads to the database

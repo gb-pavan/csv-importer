@@ -10,7 +10,7 @@ import { Loader2, RefreshCcw } from "lucide-react";
 export default function Home() {
   const { 
     status, headers, previewData, results, error, 
-    handleFileSelection, confirmAndUpload, reset 
+    handleFileSelection, handleFileRejection, confirmAndUpload, reset
   } = useCsvImport();
 
   return (
@@ -32,7 +32,7 @@ export default function Home() {
 
       {status === "idle" && (
         <div className="max-w-2xl mx-auto w-full">
-          <CsvDropzone onFileSelected={handleFileSelection} />
+          <CsvDropzone onFileSelected={handleFileSelection} onFileRejected={handleFileRejection} />
         </div>
       )}
 

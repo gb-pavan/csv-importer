@@ -16,7 +16,8 @@ import OpenAI from 'openai';
 import dotenv from 'dotenv';
 // import type { CrmStatus, DataSource, Lead } from '../../domain/entities/Lead.js';
 import type { IAiExtractor, RawCsvRecord } from '../../domain/interfaces/IAiExtractor.js';
-import { Lead, type CrmStatus, type DataSource } from '../../domain/entities/Lead.js';
+import { Lead } from '../../domain/entities/Lead.js';
+import { normalizeLead } from '../../domain/services/LeadNormalizer.js';
 import { leadExtractionSystemPrompt } from './LeadExtractionPrompt.js';
 
 dotenv.config();
@@ -53,22 +54,6 @@ export class OpenAiExtractor implements IAiExtractor {
         const extractedData: any[] = parsed.leads || [];
 
         // Map the raw JSON back into our strict Domain Entity
-        return extractedData.map(data => new Lead(
-            data.created_at ? new Date(data.created_at) : null,
-            data.name || null,
-            data.email || null,
-            data.country_code || null,
-            data.mobile_without_country_code || null,
-            data.company || null,
-            data.city || null,
-            data.state || null,
-            data.country || null,
-            data.lead_owner || null,
-            data.crm_status as CrmStatus,
-            data.crm_note || null,
-            data.data_source as DataSource,
-            data.possession_time || null,
-            data.description || null
-        ));
+        return extractedData.map(normalizeLead);
     }
 }
