@@ -1,17 +1,16 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, it } from '@jest/globals';
 import { normalizeLead } from "./LeadNormalizer.js";
 
-test("normalizes malformed AI values to safe CRM values", () => {
+it("normalizes malformed AI values to safe CRM values", () => {
   const lead = normalizeLead({
     created_at: "not a date", email: "  jane@example.com ", crm_status: "PENDING",
     data_source: "unknown", crm_note: "Call back\ntomorrow",
   });
 
-  assert.equal(lead.created_at, null);
-  assert.equal(lead.email, "jane@example.com");
-  assert.equal(lead.crm_status, null);
-  assert.equal(lead.data_source, null);
-  assert.equal(lead.crm_note, "Call back\\ntomorrow");
-  assert.equal(lead.isValid(), true);
+  expect(lead.created_at).toBeNull();
+  expect(lead.email).toBe("jane@example.com");
+  expect(lead.crm_status).toBeNull();
+  expect(lead.data_source).toBeNull();
+  expect(lead.crm_note).toBe("Call back\\ntomorrow");
+  expect(lead.isValid()).toBe(true);
 });

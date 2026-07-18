@@ -48,6 +48,10 @@ frontend/out/
 # Logs
 *.log
 
+# Test artifacts
+frontend/test-results/
+frontend/playwright-report/
+
 # IDE
 .vscode/
 .idea/
