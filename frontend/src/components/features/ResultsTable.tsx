@@ -75,13 +75,17 @@ import { CheckCircle2, XCircle } from "lucide-react";
 interface ResultsTableProps {
   totalImported: number;
   totalSkipped: number;
+  batchesProcessed: number;
   parsedLeads: Record<string, unknown>[];
+  skippedRecords: Record<string, unknown>[];
 }
 
 export const ResultsTable = ({
   totalImported,
   totalSkipped,
+  batchesProcessed,
   parsedLeads,
+  skippedRecords,
 }: ResultsTableProps) => {
   // Extract all columns dynamically
   const columns =
@@ -92,6 +96,9 @@ export const ResultsTable = ({
           )
         )
       : [];
+  const skippedColumns = Array.from(
+    new Set(skippedRecords.flatMap((record) => Object.keys(record)))
+  ).filter((column) => column !== "sourceRow" && column !== "reason");
 
   return (
     <div className="space-y-6 w-full">
@@ -128,6 +135,10 @@ export const ResultsTable = ({
           </div>
         </Card>
       </div>
+
+      <p className="text-sm text-slate-400 text-center">
+        AI processed this import in {batchesProcessed} batch{batchesProcessed === 1 ? "" : "es"}.
+      </p>
 
       {/* Dynamic Table */}
       <Card className="max-h-[500px] overflow-auto p-0 border-white/20 custom-scrollbar">
@@ -171,6 +182,41 @@ export const ResultsTable = ({
           </tbody>
         </table>
       </Card>
+
+      {skippedRecords.length > 0 && (
+        <Card className="max-h-[500px] overflow-auto p-0 border-rose-500/30 custom-scrollbar">
+          <div className="sticky top-0 z-10 border-b border-rose-500/20 bg-rose-500/10 px-6 py-4">
+            <h3 className="font-semibold text-rose-200">Skipped Records</h3>
+            <p className="text-sm text-rose-200/70">These source rows could not be imported.</p>
+          </div>
+          <table className="w-full text-sm text-left">
+            <thead className="sticky top-[73px] z-10 bg-slate-950/90 text-xs uppercase text-slate-300">
+              <tr>
+                <th className="px-6 py-4 whitespace-nowrap">Source row</th>
+                <th className="px-6 py-4 whitespace-nowrap">Reason</th>
+                {skippedColumns.map((column) => (
+                  <th key={column} className="px-6 py-4 whitespace-nowrap">{column.replace(/_/g, " ")}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {skippedRecords.map((record, index) => (
+                <tr key={`${record.sourceRow ?? "unknown"}-${index}`} className="hover:bg-white/5">
+                  <td className="px-6 py-3 text-slate-300">{String(record.sourceRow ?? "N/A")}</td>
+                  <td className="px-6 py-3 text-slate-300">{String(record.reason ?? "Not imported")}</td>
+                  {skippedColumns.map((column) => (
+                    <td key={`${index}-${column}`} className="px-6 py-3 text-slate-300 whitespace-nowrap">
+                      {record[column] === null || record[column] === undefined || record[column] === ""
+                        ? "N/A"
+                        : String(record[column])}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </div>
   );
 };

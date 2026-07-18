@@ -17,7 +17,8 @@ export class Lead {
     public readonly crm_note: string | null,
     public readonly data_source: DataSource,
     public readonly possession_time: string | null,
-    public readonly description: string | null
+    public readonly description: string | null,
+    public readonly source_index: number | null = null,
   ) {}
 
   // Domain logic: A lead is only valid if it has at least an email or mobile number

@@ -42,4 +42,7 @@ export const normalizeLead = (data: ExtractedLead): Lead => new Lead(
   asNullableString(data.country), asNullableString(data.lead_owner), asCrmStatus(data.crm_status),
   asNote(data.crm_note), asDataSource(data.data_source), asNullableString(data.possession_time),
   asNullableString(data.description),
+  typeof data.source_index === "number" && Number.isInteger(data.source_index)
+    ? data.source_index
+    : null,
 );

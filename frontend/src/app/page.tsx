@@ -61,7 +61,9 @@ export default function Home() {
           <ResultsTable 
             totalImported={results.totalImported} 
             totalSkipped={results.totalSkipped} 
+            batchesProcessed={results.batchesProcessed}
             parsedLeads={results.successfullyParsed} 
+            skippedRecords={results.skippedRecords}
           />
           <div className="flex justify-center mt-8">
             <Button variant="secondary" onClick={reset}>

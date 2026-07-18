@@ -22,7 +22,9 @@ const leadResponseSchema = {
             items: {
                 type: "object",
                 additionalProperties: false,
+                required: ["source_index"],
                 properties: {
+                    source_index: { type: "integer" },
                     created_at: { type: ["string", "null"] },
                     name: { type: ["string", "null"] },
                     email: { type: ["string", "null"] },

@@ -6,7 +6,9 @@ type CsvRow = Record<string, string>;
 type ImportResult = {
   totalImported: number;
   totalSkipped: number;
+  batchesProcessed: number;
   successfullyParsed: Record<string, unknown>[];
+  skippedRecords: Record<string, unknown>[];
 };
 
 export const useCsvImport = () => {

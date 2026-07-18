@@ -7,6 +7,11 @@ import type { IAiExtractor, RawCsvRecord } from "../domain/interfaces/IAiExtract
 import type { ILeadRepo } from "../domain/interfaces/ILeadRepo.js";
 import { ExponentialBackoffRetry } from "./ExponentialBackoffRetry.js";
 
+export type SkippedRecord = Record<string, string | number> & {
+  sourceRow: number;
+  reason: string;
+};
+
 export class ImportLeadsUseCase {
   // Batch size of 20-50 is usually optimal for LLM prompt context windows
   private readonly BATCH_SIZE = 25; 
@@ -21,6 +26,8 @@ export class ImportLeadsUseCase {
     let totalImported = 0;
     let totalSkipped = 0;
     const successfullyParsed: Lead[] = [];
+    const skippedRecords: SkippedRecord[] = [];
+    let batchesProcessed = 0;
 
     // Process in batches to avoid overloading the AI or hitting token limits 
     for (let i = 0; i < rawRecords.length; i += this.BATCH_SIZE) {
@@ -36,8 +43,19 @@ export class ImportLeadsUseCase {
 
         // 2. Validate using Domain logic (must have email or mobile) [cite: 128-133]
         // A provider must not be able to inflate the import result by returning
-        // more leads than the source batch contains.
-        const validLeads = extractedLeads.slice(0, batch.length).filter(lead => lead.isValid());
+        // more leads than the source batch contains. source_index lets us return
+        // the exact source rows that were skipped by AI validation.
+        const sourceIndexes = new Set<number>();
+        const validLeads = extractedLeads
+          .slice(0, batch.length)
+          .filter((lead, outputIndex) => {
+            const sourceIndex = lead.source_index ?? outputIndex;
+            if (!lead.isValid() || sourceIndex < 0 || sourceIndex >= batch.length || sourceIndexes.has(sourceIndex)) {
+              return false;
+            }
+            sourceIndexes.add(sourceIndex);
+            return true;
+          });
         const skippedInBatch = batch.length - validLeads.length;
 
         // 3. Save valid leads to the database
@@ -48,6 +66,16 @@ export class ImportLeadsUseCase {
         }
 
         totalSkipped += skippedInBatch;
+        batch.forEach((record, sourceIndex) => {
+          if (!sourceIndexes.has(sourceIndex)) {
+            skippedRecords.push({
+              ...record,
+              sourceRow: i + sourceIndex + 2,
+              reason: 'No usable email or mobile number was extracted.',
+            });
+          }
+        });
+        batchesProcessed += 1;
       } catch (error) {
         if (this.isRateLimited(error)) {
           // Do not make the same quota-exhausted request for every remaining
@@ -58,13 +86,21 @@ export class ImportLeadsUseCase {
         console.error(`AI extraction failed after retries for batch ${i / this.BATCH_SIZE + 1}:`, error);
         // If a whole batch fails (e.g., rate limit hit and retries exhausted), count them all as skipped
         totalSkipped += batch.length;
+        skippedRecords.push(...batch.map((record, sourceIndex) => ({
+          ...record,
+          sourceRow: i + sourceIndex + 2,
+          reason: 'AI processing failed for this batch.',
+        })));
+        batchesProcessed += 1;
       }
     }
 
     return {
       totalImported,
       totalSkipped,
-      successfullyParsed
+      batchesProcessed,
+      successfullyParsed: successfullyParsed.map(({ source_index: _sourceIndex, ...lead }) => lead),
+      skippedRecords,
     };
   }
 

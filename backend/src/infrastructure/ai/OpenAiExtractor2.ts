@@ -14,6 +14,7 @@ dotenv.config();
 
 type NvidiaLeadResponse = {
   leads: Array<{
+    source_index?: number;
     created_at?: string | null;
     name?: string | null;
     email?: string | null;
