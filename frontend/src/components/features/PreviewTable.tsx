@@ -28,21 +28,21 @@ export const PreviewTable = ({ headers, data }: PreviewTableProps) => {
   const bottomSpacerHeight = (data.length - lastVisibleRow) * ROW_HEIGHT;
 
   return (
-    <Card className="flex flex-col h-full max-h-[500px] p-0 overflow-hidden border-white/20">
-      <div className="p-4 border-b border-white/10 bg-white/5">
+    <Card className="flex h-full max-h-[min(500px,70vh)] flex-col overflow-hidden p-0 border-white/20">
+      <div className="border-b border-white/10 bg-white/5 p-4 sm:px-6">
         <h3 className="text-lg font-semibold glow-text">CSV Data Preview</h3>
         <p className="text-xs text-slate-400">
           Viewing all {data.length.toLocaleString()} rows with virtualized rendering.
         </p>
       </div>
 
-      <div className="overflow-auto flex-1 custom-scrollbar" onScroll={onScroll}>
-        <table className="w-full text-sm text-left">
+      <div className="flex-1 overflow-auto custom-scrollbar" onScroll={onScroll}>
+        <table className="min-w-max w-full text-sm text-left">
           <thead className="text-xs uppercase bg-white/10 backdrop-blur-md text-slate-300 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-6 py-4 font-medium tracking-wider">#</th>
+              <th className="px-4 py-3 font-medium tracking-wider sm:px-6 sm:py-4">#</th>
               {headers.map((header) => (
-                <th key={header} className="px-6 py-4 font-medium tracking-wider whitespace-nowrap">
+                <th key={header} className="whitespace-nowrap px-4 py-3 font-medium tracking-wider sm:px-6 sm:py-4">
                   {header}
                 </th>
               ))}
@@ -55,9 +55,9 @@ export const PreviewTable = ({ headers, data }: PreviewTableProps) => {
 
               return (
                 <tr key={rowIndex} className="h-[45px] hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-3 text-slate-500">{rowIndex + 1}</td>
+                  <td className="px-4 py-3 text-slate-500 sm:px-6">{rowIndex + 1}</td>
                   {headers.map((header) => (
-                    <td key={header} className="px-6 py-3 whitespace-nowrap text-slate-300">
+                    <td key={header} className="whitespace-nowrap px-4 py-3 text-slate-300 sm:px-6">
                       {row[header] || "-"}
                     </td>
                   ))}

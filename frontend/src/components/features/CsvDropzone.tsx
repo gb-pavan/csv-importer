@@ -39,25 +39,25 @@ export const CsvDropzone = ({ onFileSelected, onFileRejected }: CsvDropzoneProps
     <Card
       {...(getRootProps() as React.HTMLAttributes<HTMLDivElement>)}
       className={cn(
-        "border-2 border-dashed cursor-pointer transition-all duration-300 flex flex-col items-center justify-center py-16 focus:outline-none",
+        "flex min-h-72 cursor-pointer flex-col items-center justify-center border-2 border-dashed px-5 py-10 text-center transition-all duration-300 focus:outline-none sm:min-h-80 sm:px-8 sm:py-16",
         isDragActive ? "border-emerald-500 bg-emerald-500/10 scale-[1.02]" : "border-white/20 hover:border-white/40 hover:bg-white/5",
         isDragReject && "border-red-500 bg-red-500/10"
       )}
     >
       <input {...(getInputProps() as React.InputHTMLAttributes<HTMLInputElement>)} />
       
-      <div className="bg-white/5 p-4 rounded-full mb-4 transition-colors">
+      <div className="mb-4 rounded-full bg-white/5 p-3 transition-colors sm:p-4">
         {isDragActive ? (
-          <FileJson className="w-10 h-10 text-emerald-400" />
+          <FileJson className="h-9 w-9 text-emerald-400 sm:h-10 sm:w-10" />
         ) : (
-          <UploadCloud className="w-10 h-10 text-cyan-400" />
+          <UploadCloud className="h-9 w-9 text-cyan-400 sm:h-10 sm:w-10" />
         )}
       </div>
       
-      <h3 className="text-xl font-semibold mb-2 glow-text">
+      <h3 className="mb-2 text-lg font-semibold glow-text sm:text-xl">
         {isDragActive ? "Drop it right here" : "Upload your CSV"}
       </h3>
-      <p className="text-slate-400 text-sm text-center max-w-sm mt-2">
+      <p className="mt-2 max-w-sm text-center text-sm leading-6 text-slate-400">
         Drag & drop your lead export here, or click to browse. Ensure it&apos;s a valid CSV format.
       </p>
     </Card>

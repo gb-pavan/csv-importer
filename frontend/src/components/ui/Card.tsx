@@ -6,7 +6,7 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
     return (
       <div
         ref={ref}
-        className={cn("glass-panel rounded-2xl p-6", className)}
+        className={cn("glass-panel min-w-0 rounded-2xl p-4 sm:p-6", className)}
         {...props}
       >
         {children}

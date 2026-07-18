@@ -20,7 +20,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          "px-6 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2",
+          "min-h-11 rounded-xl px-5 py-2.5 font-medium transition-all duration-200 flex items-center justify-center gap-2 sm:px-6",
           variants[variant],
           className
         )}

@@ -103,17 +103,17 @@ export const ResultsTable = ({
   return (
     <div className="space-y-6 w-full">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="flex items-center gap-4 bg-cyan-500/10 border-cyan-500/30">
-          <CheckCircle2 className="w-10 h-10 text-cyan-400" />
-          <div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+        <Card className="flex items-center gap-3 border-cyan-500/30 bg-cyan-500/10 sm:gap-4">
+          <CheckCircle2 className="h-9 w-9 shrink-0 text-cyan-400 sm:h-10 sm:w-10" />
+          <div className="min-w-0">
             <p className="text-sm text-slate-300">Successfully Parsed</p>
             <p className="text-3xl font-bold text-cyan-400">{parsedLeads.length}</p>
           </div>
         </Card>
-        <Card className="flex items-center gap-4 bg-emerald-500/10 border-emerald-500/30">
-          <CheckCircle2 className="w-10 h-10 text-emerald-400" />
-          <div>
+        <Card className="flex items-center gap-3 border-emerald-500/30 bg-emerald-500/10 sm:gap-4">
+          <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-400 sm:h-10 sm:w-10" />
+          <div className="min-w-0">
             <p className="text-sm text-slate-300">
               Successfully Imported
             </p>
@@ -123,9 +123,9 @@ export const ResultsTable = ({
           </div>
         </Card>
 
-        <Card className="flex items-center gap-4 bg-rose-500/10 border-rose-500/30">
-          <XCircle className="w-10 h-10 text-rose-400" />
-          <div>
+        <Card className="flex items-center gap-3 border-rose-500/30 bg-rose-500/10 sm:gap-4">
+          <XCircle className="h-9 w-9 shrink-0 text-rose-400 sm:h-10 sm:w-10" />
+          <div className="min-w-0">
             <p className="text-sm text-slate-300">
               Skipped (Invalid/Failed)
             </p>
@@ -136,22 +136,22 @@ export const ResultsTable = ({
         </Card>
       </div>
 
-      <p className="text-sm text-slate-400 text-center">
+      <p className="px-2 text-center text-sm leading-6 text-slate-400">
         AI processed this import in {batchesProcessed} batch{batchesProcessed === 1 ? "" : "es"}.
       </p>
 
       {/* Dynamic Table */}
-      <Card className="max-h-[500px] overflow-auto p-0 border-white/20 custom-scrollbar">
+      <Card className="max-h-[min(500px,70vh)] overflow-auto p-0 border-white/20 custom-scrollbar">
         {parsedLeads.length === 0 && (
           <p className="p-6 text-center text-slate-400">No valid CRM records were extracted.</p>
         )}
-        <table className="w-full text-sm text-left">
+        <table className="min-w-max w-full text-sm text-left">
           <thead className="text-xs uppercase bg-white/10 backdrop-blur-md text-slate-300 sticky top-0 z-10">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column}
-                  className="px-6 py-4 whitespace-nowrap"
+                  className="whitespace-nowrap px-4 py-3 sm:px-6 sm:py-4"
                 >
                   {column.replace(/_/g, " ")}
                 </th>
@@ -168,7 +168,7 @@ export const ResultsTable = ({
                 {columns.map((column) => (
                   <td
                     key={`${rowIndex}-${column}`}
-                    className="px-6 py-3 text-slate-300 whitespace-nowrap"
+                    className="whitespace-nowrap px-4 py-3 text-slate-300 sm:px-6"
                   >
                     {lead[column] === null ||
                     lead[column] === undefined ||
@@ -184,28 +184,28 @@ export const ResultsTable = ({
       </Card>
 
       {skippedRecords.length > 0 && (
-        <Card className="max-h-[500px] overflow-auto p-0 border-rose-500/30 custom-scrollbar">
-          <div className="sticky top-0 z-10 border-b border-rose-500/20 bg-rose-500/10 px-6 py-4">
+        <Card className="max-h-[min(500px,70vh)] overflow-auto p-0 border-rose-500/30 custom-scrollbar">
+          <div className="sticky top-0 z-10 border-b border-rose-500/20 bg-rose-500/10 px-4 py-3 sm:px-6 sm:py-4">
             <h3 className="font-semibold text-rose-200">Skipped Records</h3>
             <p className="text-sm text-rose-200/70">These source rows could not be imported.</p>
           </div>
-          <table className="w-full text-sm text-left">
+          <table className="min-w-max w-full text-sm text-left">
             <thead className="sticky top-[73px] z-10 bg-slate-950/90 text-xs uppercase text-slate-300">
               <tr>
-                <th className="px-6 py-4 whitespace-nowrap">Source row</th>
-                <th className="px-6 py-4 whitespace-nowrap">Reason</th>
+                <th className="whitespace-nowrap px-4 py-3 sm:px-6 sm:py-4">Source row</th>
+                <th className="whitespace-nowrap px-4 py-3 sm:px-6 sm:py-4">Reason</th>
                 {skippedColumns.map((column) => (
-                  <th key={column} className="px-6 py-4 whitespace-nowrap">{column.replace(/_/g, " ")}</th>
+                  <th key={column} className="whitespace-nowrap px-4 py-3 sm:px-6 sm:py-4">{column.replace(/_/g, " ")}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {skippedRecords.map((record, index) => (
                 <tr key={`${record.sourceRow ?? "unknown"}-${index}`} className="hover:bg-white/5">
-                  <td className="px-6 py-3 text-slate-300">{String(record.sourceRow ?? "N/A")}</td>
-                  <td className="px-6 py-3 text-slate-300">{String(record.reason ?? "Not imported")}</td>
+                  <td className="px-4 py-3 text-slate-300 sm:px-6">{String(record.sourceRow ?? "N/A")}</td>
+                  <td className="px-4 py-3 text-slate-300 sm:px-6">{String(record.reason ?? "Not imported")}</td>
                   {skippedColumns.map((column) => (
-                    <td key={`${index}-${column}`} className="px-6 py-3 text-slate-300 whitespace-nowrap">
+                    <td key={`${index}-${column}`} className="whitespace-nowrap px-4 py-3 text-slate-300 sm:px-6">
                       {record[column] === null || record[column] === undefined || record[column] === ""
                         ? "N/A"
                         : String(record[column])}

@@ -14,18 +14,18 @@ export default function Home() {
   } = useCsvImport();
 
   return (
-    <main className="min-h-screen p-8 md:p-24 max-w-6xl mx-auto flex flex-col gap-8">
-      <header className="text-center space-y-4 mb-8">
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight glow-text">
+    <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+      <header className="mx-auto mb-2 max-w-3xl space-y-3 text-center sm:mb-6 sm:space-y-4">
+        <h1 className="text-3xl font-bold tracking-tight glow-text sm:text-5xl lg:text-6xl">
           GrowEasy Data Importer
         </h1>
-        <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+        <p className="mx-auto max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
           Intelligently map and extract CRM leads from any CSV structure.
         </p>
       </header>
 
       {error && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-center">
+        <div role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-center text-sm leading-6 text-rose-300 sm:text-base">
           {error}
         </div>
       )}
@@ -39,19 +39,19 @@ export default function Home() {
       {status === "previewing" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <PreviewTable headers={headers} data={previewData} />
-          <div className="flex justify-end gap-4">
-            <Button variant="ghost" onClick={reset}>Cancel</Button>
-            <Button onClick={confirmAndUpload}>Confirm & Extract with AI</Button>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
+            <Button variant="ghost" className="w-full sm:w-auto" onClick={reset}>Cancel</Button>
+            <Button className="w-full sm:w-auto" onClick={confirmAndUpload}>Confirm & Extract with AI</Button>
           </div>
         </div>
       )}
 
       {status === "uploading" && (
-        <div className="flex flex-col items-center justify-center py-24 space-y-6 glass-panel rounded-2xl">
+        <div className="flex min-h-72 flex-col items-center justify-center space-y-5 rounded-2xl glass-panel px-6 py-12 text-center sm:min-h-96 sm:py-24">
           <Loader2 className="w-12 h-12 text-emerald-400 animate-spin" />
           <div className="text-center">
-            <h3 className="text-xl font-semibold text-white">AI is extracting records...</h3>
-            <p className="text-slate-400 mt-2">This might take a moment depending on the file size.</p>
+            <h3 className="text-lg font-semibold text-white sm:text-xl">AI is extracting records...</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400 sm:text-base">This might take a moment depending on the file size.</p>
           </div>
         </div>
       )}
@@ -65,8 +65,8 @@ export default function Home() {
             parsedLeads={results.successfullyParsed} 
             skippedRecords={results.skippedRecords}
           />
-          <div className="flex justify-center mt-8">
-            <Button variant="secondary" onClick={reset}>
+          <div className="mt-8 flex justify-center">
+            <Button className="w-full sm:w-auto" variant="secondary" onClick={reset}>
               <RefreshCcw className="w-4 h-4" /> Import Another File
             </Button>
           </div>
